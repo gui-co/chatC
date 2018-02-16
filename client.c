@@ -91,17 +91,7 @@ int main()
       }
     }
   }
-  
-  char * message = "Bonjour";
-  int16_t t = 8;
-  write(sockClient,&t,sizeof(int16_t));
-  write(sockClient,message,t);
-  fprintf(stderr,"ok");
-  char test[100];
-  read(sockClient,&t,sizeof(int16_t));
-  read(sockClient,test,8);
-  fprintf(stderr,"%s\n",test);
-  close(sockClient);
+
   return 0;
 }
 
