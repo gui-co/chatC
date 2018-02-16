@@ -88,29 +88,29 @@ int main()
         if (fds[fdCourant].revents & POLLIN)
         {
           nbPoll--;
-          if (fdCourant==0)
+          switch (fdCourant)
           {
-            switch (nouveauClient(sockServeur,fds))
-            {
-              case 1:
-                fprintf(stderr,"Connexion d'un client.\n");
-                break;
-              default:
-                fprintf(stderr,"Déjà le nombre maximal de client. Connexion refusée.\n");
-                break;
-            }
-          }
-          else
-          {
-            switch(nouveauMessage(fdCourant,fds))
-            {
-              case 1:
-                fprintf(stderr,"Envoi d'un message.\n");
-                break;
-              case 0:
-                fprintf(stderr,"Client déconnecté.\n");
-                break;
-            }
+            case 0:
+              switch (nouveauClient(sockServeur,fds))
+              {
+                case 1:
+                  fprintf(stderr,"Connexion d'un client.\n");
+                  break;
+                default:
+                  fprintf(stderr,"Déjà le nombre maximal de client. Connexion refusée.\n");
+                  break;
+              }
+              break;
+            default:
+              switch(nouveauMessage(fdCourant,fds))
+              {
+                case 1:
+                  fprintf(stderr,"Envoi d'un message.\n");
+                  break;
+                case 0:
+                  fprintf(stderr,"Client déconnecté.\n");
+                  break;
+              }
           }
         }
         fdCourant++;
