@@ -12,25 +12,77 @@
 #include <poll.h>
 
 
+void fenetreOptions(char * ip, int * port, char * pseudo)
+{
+  WINDOW *options, *ipW, *portW, *pseudoW;
+  options = newwin(5,34,(LINES-5)/2,(COLS-34)/2);
+  box(options,ACS_VLINE,ACS_HLINE);
+  ipW = derwin(options,1,15,1,17);
+  portW = derwin(options,1,6,2,19);
+  pseudoW = derwin(options,1,15,3,14);
+  mvwprintw(options,1,1,"IP du serveur : ");
+  mvwprintw(options,2,1,"Port du serveur : ");
+  mvwprintw(options,3,1,"Difficulté : ");
+  wrefresh(options);
+  do
+  {
+    werase(ipW);
+    wrefresh(ipW);
+    mvwscanw(ipW,0,0,"%15s",ip);
+  }
+  while (!inet_aton(ip,NULL));
+
+  do
+  {
+    werase(portW);
+    wrefresh(portW);
+    mvwscanw(portW,0,0,"%d",port);
+  }
+  while (*port < 0 || *port > 65535);
+
+  mvwscanw(pseudoW,0,0,"%15s",pseudo);
+  werase(options);
+  wrefresh(options);
+}
+
+
 int main()
 {
+  /* connexion */
   int sockClient;
   struct sockaddr_in adresseServeur;
   struct sockaddr_in adresseClient;
   socklen_t tailleAdresse;
+  char ip[20];
+  int port;
 
+  /* chat */
+  char pseudo[20];
+  struct pollfd fds[2];
+  char messageEnvoi[500];
+  char messageRecu[500];
+  int16_t tMessEnvoi;
+  int16_t tMessRecu;
+  int nbMessagesRecus = 1;
+  char c;
+
+  /* ncurses */
+  WINDOW * chat;
+  WINDOW * envoi;
+  
+  initscr();
+
+  fenetreOptions(ip,&port,pseudo);
+
+  curs_set(0);
+  noecho();
   adresseServeur.sin_family = AF_INET;
-  adresseServeur.sin_addr.s_addr = inet_addr("127.0.0.1");
-  adresseServeur.sin_port = htons(45037);
+  adresseServeur.sin_addr.s_addr = inet_addr(ip);
+  adresseServeur.sin_port = htons(port);
   sockClient = creerSocket(&adresseClient,0);
   tailleAdresse = sizeof(adresseServeur);
   connect(sockClient,(struct sockaddr *)&adresseServeur,tailleAdresse);
 
-  initscr();
-  curs_set(0);
-  noecho();
-  WINDOW * chat;
-  WINDOW * envoi;
   chat = subwin(stdscr,LINES-3,COLS,0,0);
   box(chat, ACS_VLINE, ACS_HLINE);
   envoi = subwin(stdscr,3,COLS,LINES-3,0);
@@ -38,19 +90,11 @@ int main()
   scrollok(envoi, 1);
   refresh();
 
-  struct pollfd fds[2];
   fds[0].fd = fileno(stdin);
   fds[0].events = POLLIN;
   fds[1].fd = sockClient;
   fds[1].events = POLLIN;
-  char messageEnvoi[500];
-  char messageRecu[500];
-  int16_t l=0;
-  int16_t g;
-  int nbMessagesRecus = 1;
-  char c;
-
-
+ 
   while(1)
   {
     if (poll(fds,2,-1) > 0)
@@ -60,30 +104,30 @@ int main()
         switch (c = getch())
         {
           case '\n':
-            write(sockClient,&l,sizeof(int16_t));
-            write(sockClient,messageEnvoi,l);
+            write(sockClient,&tMessEnvoi,sizeof(int16_t));
+            write(sockClient,messageEnvoi,tMessEnvoi);
             werase(envoi);
             wrefresh(envoi);
-            l=0;
+            tMessEnvoi=0;
             break;
           case 127:
-            l= l>0?l-1:0;
-            mvwprintw(envoi,1,l+1," ");
+            tMessEnvoi= tMessEnvoi>0?tMessEnvoi-1:0;
+            mvwprintw(envoi,1,tMessEnvoi+1," ");
             wrefresh(envoi);
             break;
           default:
-            messageEnvoi[l] = c;
-            mvwprintw(envoi,1,l+1,"%c",c);
+            messageEnvoi[tMessEnvoi] = c;
+            mvwprintw(envoi,1,tMessEnvoi+1,"%c",c);
             wrefresh(envoi);
-            l++;
+            tMessEnvoi++;
             break;
         }
       }
       if (fds[1].revents & POLLIN)
       {
-        read(sockClient,&g,sizeof(int16_t));
-        read(sockClient,messageRecu,g);
-        messageRecu[g]='\0';
+        read(sockClient,&tMessRecu,sizeof(int16_t));
+        read(sockClient,messageRecu,tMessRecu);
+        messageRecu[tMessRecu]='\0';
         mvwprintw(chat,nbMessagesRecus,1,"%s",messageRecu);
         wrefresh(chat);
         beep();

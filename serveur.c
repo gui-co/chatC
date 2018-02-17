@@ -63,7 +63,7 @@ int main()
   int nbPoll;
   int fdCourant;
 
-  sockServeur = creerSocket(&adresseServeur,45037);
+  sockServeur = creerSocket(&adresseServeur,0);
   listen(sockServeur,SOMAXCONN);
 
   fprintf(stdout,"Serveur en écoute sur : %d\n",
