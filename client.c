@@ -81,12 +81,13 @@ int main()
   char messageRecu[500];
   int16_t tMessEnvoi;
   int16_t tMessRecu;
-  int nbMessagesRecus = 1;
+  int nbMessagesRecus;
   char c;
 
   /* ncurses */
   WINDOW * chat;
   WINDOW * envoi;
+  WINDOW * message;
   
   initscr();
 
@@ -105,7 +106,8 @@ int main()
   box(chat, ACS_VLINE, ACS_HLINE);
   envoi = subwin(stdscr,3,COLS,LINES-3,0);
   box(envoi, ACS_VLINE, ACS_HLINE);
-  scrollok(envoi, 1);
+  message = derwin(envoi,1,COLS-1,1,0);
+  scrollok(chat, 1);
   refresh();
 
   fds[0].fd = fileno(stdin);
@@ -113,6 +115,9 @@ int main()
   fds[1].fd = sockClient;
   fds[1].events = POLLIN;
  
+  tMessEnvoi = 0;
+  nbMessagesRecus = 0;
+
   while(1)
   {
     if (poll(fds,2,-1) > 0)
@@ -125,19 +130,19 @@ int main()
             ajoutPseudo(messageEnvoi,pseudo,&tMessEnvoi);
             write(sockClient,&tMessEnvoi,sizeof(int16_t));
             write(sockClient,messageEnvoi,tMessEnvoi);
-            werase(envoi);
-            wrefresh(envoi);
+            werase(message);
+            wrefresh(message);
             tMessEnvoi=0;
             break;
           case 127:
             tMessEnvoi= tMessEnvoi>0?tMessEnvoi-1:0;
-            mvwprintw(envoi,1,tMessEnvoi+1," ");
-            wrefresh(envoi);
+            mvwprintw(message,0,tMessEnvoi+1," ");
+            wrefresh(message);
             break;
           default:
             messageEnvoi[tMessEnvoi] = c;
-            mvwprintw(envoi,1,tMessEnvoi+1,"%c",c);
-            wrefresh(envoi);
+            mvwprintw(message,0,tMessEnvoi+1,"%c",c);
+            wrefresh(message);
             tMessEnvoi++;
             break;
         }
@@ -147,7 +152,7 @@ int main()
         read(sockClient,&tMessRecu,sizeof(int16_t));
         read(sockClient,messageRecu,tMessRecu);
         messageRecu[tMessRecu]='\0';
-        mvwprintw(chat,nbMessagesRecus,1,"%s",messageRecu);
+        mvwprintw(chat,nbMessagesRecus+1,1,"%s",messageRecu);
         wrefresh(chat);
         beep();
         nbMessagesRecus++;
