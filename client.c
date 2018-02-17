@@ -11,6 +11,24 @@
 #include <curses.h>
 #include <poll.h>
 
+void ajoutPseudo(char * message, char * pseudo, int16_t * tailleMessage)
+{
+  char tmp[1000];
+  char * ptr;
+  int i;
+
+  ptr = message;
+  i=0;
+  
+  while ((tmp[i++] = *pseudo++));
+  *tailleMessage += i--;
+  tmp[i++] = '>';
+  
+  while ((tmp[i++] = *message++));
+  
+  i=0;
+  while ((*ptr++ = tmp[i++]));
+}
 
 void fenetreOptions(char * ip, int * port, char * pseudo)
 {
@@ -19,10 +37,10 @@ void fenetreOptions(char * ip, int * port, char * pseudo)
   box(options,ACS_VLINE,ACS_HLINE);
   ipW = derwin(options,1,15,1,17);
   portW = derwin(options,1,6,2,19);
-  pseudoW = derwin(options,1,15,3,14);
+  pseudoW = derwin(options,1,15,3,10);
   mvwprintw(options,1,1,"IP du serveur : ");
   mvwprintw(options,2,1,"Port du serveur : ");
-  mvwprintw(options,3,1,"Difficulté : ");
+  mvwprintw(options,3,1,"Pseudo : ");
   wrefresh(options);
   do
   {
@@ -104,6 +122,7 @@ int main()
         switch (c = getch())
         {
           case '\n':
+            ajoutPseudo(messageEnvoi,pseudo,&tMessEnvoi);
             write(sockClient,&tMessEnvoi,sizeof(int16_t));
             write(sockClient,messageEnvoi,tMessEnvoi);
             werase(envoi);
