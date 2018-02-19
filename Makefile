@@ -1,13 +1,15 @@
+CC = gcc
 CFLAGS = -Wall
-LIBS = -lcurses
+LDLIBS = -lcurses
+EXEC = serveur client
 
-all: serveur client
+all: $(EXEC)
 
 serveur: serveur.o sock.o
-	gcc -o $@ $^ $(LIBS)
+	$(CC) -o $@ $^ $(LDLIBS)
 
 client: client.o sock.o
-	gcc -o $@ $^ $(LIBS)
+	$(CC) -o $@ $^ $(LDLIBS)
 
 clean:
 	rm *.o
