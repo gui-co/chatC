@@ -86,6 +86,7 @@ int main()
 
   /* ncurses */
   WINDOW * chat;
+  WINDOW * chatCadre;
   WINDOW * envoi;
   WINDOW * message;
   
@@ -102,12 +103,14 @@ int main()
   tailleAdresse = sizeof(adresseServeur);
   connect(sockClient,(struct sockaddr *)&adresseServeur,tailleAdresse);
 
-  chat = subwin(stdscr,LINES-3,COLS,0,0);
-  box(chat, ACS_VLINE, ACS_HLINE);
+  chatCadre = subwin(stdscr,LINES-3,COLS,0,0);
+  box(chatCadre, ACS_VLINE, ACS_HLINE);
+  chat = subwin(chatCadre,LINES-5,COLS-3,1,1);
   envoi = subwin(stdscr,3,COLS,LINES-3,0);
   box(envoi, ACS_VLINE, ACS_HLINE);
-  message = derwin(envoi,1,COLS-1,1,0);
-  scrollok(chat, 1);
+  message = derwin(envoi,1,COLS-2,1,1);
+  scrollok(chat,1);
+  idlok(chat,1);
   refresh();
 
   fds[0].fd = fileno(stdin);
@@ -152,7 +155,7 @@ int main()
         read(sockClient,&tMessRecu,sizeof(int16_t));
         read(sockClient,messageRecu,tMessRecu);
         messageRecu[tMessRecu]='\0';
-        mvwprintw(chat,nbMessagesRecus+1,1,"%s",messageRecu);
+        wprintw(chat,"%s\n",messageRecu);
         wrefresh(chat);
         beep();
         nbMessagesRecus++;
