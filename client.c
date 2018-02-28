@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <curses.h>
 #include <poll.h>
+#include "erreur.h"
 
 void ajoutPseudo(char * message, char * pseudo, int16_t * tailleMessage)
 {
@@ -89,7 +90,7 @@ int main()
   WINDOW * chatCadre;
   WINDOW * envoi;
   WINDOW * message;
-  
+ 
   initscr();
 
   fenetreOptions(ip,&port,pseudo);
@@ -101,7 +102,8 @@ int main()
   adresseServeur.sin_port = htons(port);
   sockClient = creerSocket(&adresseClient,0);
   tailleAdresse = sizeof(adresseServeur);
-  connect(sockClient,(struct sockaddr *)&adresseServeur,tailleAdresse);
+  if (connect(sockClient,(struct sockaddr *)&adresseServeur,tailleAdresse) == -1)
+    terminer(E_CONNECT);
 
   chatCadre = subwin(stdscr,LINES-3,COLS,0,0);
   box(chatCadre, ACS_VLINE, ACS_HLINE);
@@ -163,6 +165,7 @@ int main()
     }
   }
 
+  endwin();
   return 0;
 }
 

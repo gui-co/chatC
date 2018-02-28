@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "sock.h"
+#include "erreur.h"
 
 #define NB_MAX_CLI 10
 
